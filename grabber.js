@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const puppeteer = require('puppeteer');
 
-const MIN_INDEX = 60
+const MIN_INDEX = 0
 const MAX_INDEX = 100
 const MAX_LISTENERS = 5
 const TIMEOUT = 1000
