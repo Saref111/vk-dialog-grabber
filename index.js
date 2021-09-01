@@ -2,10 +2,11 @@ const fs = require('fs')
 const path = require('path')
 const puppeteer = require('puppeteer');
 
-const MIN_INDEX = 50
+const MIN_INDEX = 60
 const MAX_INDEX = 100
 const MAX_LISTENERS = 5
 const TIMEOUT = 1000
+const RESULT_FILE = 'script.txt'
 
 let dirs = []
 let finalString = ''
@@ -26,28 +27,28 @@ const getString = (arr) => {
     }, finalString)
 }
 
-const getStringFromFile = async (filename, foldername) => {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto(`file://${path.join(__dirname, 'messages', foldername, filename)}`);
-    const m = await page.$$eval('.message', (nodes) => nodes.map((n) => n.textContent))
-
-    finalString = getString(m)
-    await page.close();
-    await browser.close();
-}
-
 const getFilesFromFolder = async (folder) => {
-    
+    const browser = await puppeteer.launch();
     let allFiles = fs.readdirSync(path.join(__dirname, 'messages', folder))
 
     if (Array.isArray(allFiles)) {
-        allFiles.forEach((it) => getStringFromFile(it, folder))
+        let page = null
+
+        for (let it of allFiles) {
+            page = await browser.newPage();
+
+            await page.goto(`file://${path.join(__dirname, 'messages', folder, it)}`);
+            const m = await page.$$eval('.message', (nodes) => nodes.map((n) => n.textContent))
+            finalString = getString(m)
+
+            await page.close()
+        }
+
     }
 
-    fs.writeFileSync('test.txt', finalString)
+    await browser.close();
+    fs.writeFileSync(RESULT_FILE, finalString)
 }
-
 
 fs.readdir(path.join(__dirname, 'messages'), async (err, files) => {
     if (err) throw new Error(err)
@@ -71,16 +72,3 @@ fs.readdir(path.join(__dirname, 'messages'), async (err, files) => {
     }
     
 })  
-
-
-
-// DATA PROBLEM 
-// 2000000006    messages10100.html
-// 2000000006    messages10250.html
-// 2000000006    messages10350.html
-// 2000000006    messages10400.html
-// 2000000006    messages1050.html
-// 2000000006    messages10450.html
-// 2000000006    messages10650.html
-// 2000000006    messages10700.html
-// 2000000006    messages10750.html
