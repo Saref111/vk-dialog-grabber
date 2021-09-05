@@ -12,13 +12,29 @@ let targetAreaFlag = false
 
 let finalString = ''
 
+const isSpeechLine = (line) => {
+    const examples = ['!', 'http', 'Фотография', '1 прикре', 'Сообщение', '🔍', '💬', 'Файл', 'Стикер', 'Видеозапись' ]
+    let resp = false
+
+    for (const i of examples) {
+        resp = line.startsWith(i)
+
+        if (resp) {
+            break
+        }
+    }
+
+    return !resp
+}
+
 const catchContent = async (rl) => {
-    for await (const line of rl) {
+    for await (let line of rl) {
+        line = line.trim()
         if (targetLineFlag) targetAreaFlag = true // target message first line
         if (HEADER_LINE_REGEXP.test(line))  targetAreaFlag = targetLineFlag = false
         if (TARGET_LINE_REGEXP.test(line))  targetLineFlag = true
 
-        if (targetAreaFlag) {
+        if (targetAreaFlag && line && isSpeechLine(line)) {
             finalString = finalString + `\n` + line
         }
     }
